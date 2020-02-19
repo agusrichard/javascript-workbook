@@ -1,0 +1,18 @@
+{
+  "name": "express_crash_course",
+  "version": "1.0.0",
+  "description": "Learn express.js",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "dev": "nodemon index"
+  },
+  "author": "Agus Richard",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
