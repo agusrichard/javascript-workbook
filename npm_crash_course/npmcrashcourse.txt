@@ -1,0 +1,89 @@
+// Check node version
+node --version
+node --v
+
+// Check npm version
+npm --version
+npm -v
+
+// Get help
+npm help
+
+// Create package.json
+npm init
+
+// Create package.json without any questions
+npm init -y
+npm init --yes
+
+// Change package.json configuration (author name) default
+npm config set init-author-name "<author_name>"
+ex: npm config set init-author-name "Agus Richard"
+
+// Change package.json configuration (license name) default
+npm set init-license "<license_name>"
+ex: npm set init-license "MIT"
+
+// Get the name of the default author
+npm get init-author-name
+
+// Remove default
+npm config delete init-author-name
+
+// Install 
+npm install <module_name> --save
+ex: npm install lodash --save
+// flag --save will change the dependencies to package.json
+
+// Install for development 
+npm install --save-dev <module_name>
+ex: npm install --save-dev gulp gulp-sass
+
+// Install for production
+npm install --production
+
+// Uninstall
+npm uninstall --save-dev <module_name>
+npm remove --save-dev <module_name>
+npm rm --save-dev <module_name>
+npm un --save-dev <module_name>
+ex: npm uninstall --save-dev gulp gulp-sass
+
+
+// Install for particular version
+npm install --save-dev <module_name_with_version>
+ex: npm install --save-dev lodash04.17.3
+
+// Update to the current version
+npm update <module_name>
+ex: npm update lodash
+
+"""
+What it means the carat symbol in package.json?
+It means that it will install the latest minor version
+If it was tilde, then it will install the latest patch
+If nothing, then it will install the exact version
+If using * then it will install the latest version
+"""
+
+// Install globally
+npm install -g <module_name>
+ex: npm install -g nodemon
+
+// How to know the root of the global module
+npm root -g
+
+// Uninstall globally
+npm uninstall -g <module_name>
+
+// List of dependencies
+npm list
+
+// List of dependencies (only the heigher level)
+npm list --depth 0
+
+
+"""
+Add object to scripts:
+"dev": "live-server"
+"""
