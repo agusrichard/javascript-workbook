@@ -1,0 +1,36 @@
+// Initialize Local Git Repository
+git init
+
+// Add file(s) to index
+git add <file>
+ex: git add *.html ---> will add any html file into staging area
+ex: git add . ---> add everything
+
+// Check status of working tree
+git status
+
+// Commit changes in Index
+git commit
+ex: git commit -m "Something comment"
+
+// Push to remote repository
+git push
+
+// Pull latest from remote repository
+git pull
+
+// Clone repository into a new directory
+git clone
+
+// Remove file from staging area
+git rm --cached <file>
+
+// Making branch
+git branch <branch_name>
+
+// Switch to the branch
+git checkout <branch_name>
+git checkout master ---> switch back to master branch
+
+// Merge 
+git merge <branch_name>
