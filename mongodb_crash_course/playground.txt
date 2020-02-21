@@ -1,0 +1,7 @@
+db.posts.find({
+  comments: {
+    $elemMatch: {
+      user: 'Sherlock Holmes'
+    }
+  }
+}).pretty()

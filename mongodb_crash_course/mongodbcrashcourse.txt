@@ -1,0 +1,264 @@
+------------------------------------------------------
+// Drop database
+db.dropDatabase()
+
+
+------------------------------------------------------
+// Show all the available database
+show dbs
+
+
+------------------------------------------------------
+// Check what database we are in
+db
+
+
+------------------------------------------------------
+// Create database and use it
+use <database_name>
+EX:
+use posts
+
+
+------------------------------------------------------
+// Create collections
+db.createCollection('<collection_name>')
+EX:
+db.createCollection('posts')
+
+
+------------------------------------------------------
+// Show all collections in the database
+show collections
+
+
+------------------------------------------------------
+// Insert one to the database
+db.<collection_name>.insert(<the_inserted_object>)
+EX:
+db.posts.insert({
+    title: 'Post One',
+    body: 'This is post one',
+    category: 'News',
+    likes: 5,
+    tags: ['news', 'events'],
+    user: {
+        name: 'Agus Richard',
+        status: 'author'
+    },
+    date: Date()
+})
+
+
+------------------------------------------------------
+// Insert many to the database
+db.<collection_name>.insertMany(<list_of_objects>)
+EX:
+db.posts.insertMany([
+    {
+        title: 'Post two',
+        body: 'This is post two',
+        category: 'Technology',
+        date: Date()
+    },
+    {
+        title: 'Post three',
+        body: 'This is post three',
+        category: 'Science',
+        date: Date()
+    },
+    {
+        title: 'Post four',
+        body: 'This is post four',
+        category: 'Entertainment',
+        date: Date()
+    }
+])
+
+
+------------------------------------------------------
+// Show all the objects
+db.<collection_name>.find()
+EX:
+db.posts.find()
+
+
+------------------------------------------------------
+// Show all the objects, prettified
+db.<collection_name>.find().pretty()
+EX:
+db.posts.find().pretty()
+
+
+------------------------------------------------------
+// Filter the data (like WHERE clause)
+db.<collection_name>.find({<key>: <value>})
+---> will return objects with the specified key-value pair
+EX:
+db.posts.find({category: 'News'})
+
+
+------------------------------------------------------
+// Sort the data 
+db.<collection_name>.find().sort({<key_for_sort>: <token>})
+---> token: 1 for ascending, -1 for descending
+EX:
+db.posts.find().sort({title: 1}).pretty()
+
+
+------------------------------------------------------
+// Count the data
+db.<collection_name>.find().count()
+EX:
+db.posts.find().count()
+db.posts.find({category: 'News'}).count() --> with prescribed key-value pair
+
+
+------------------------------------------------------
+// Limit the data
+db.<collection_name>.find().limit(<num>)
+--> num: the specified number of limit
+EX:
+db.posts.find().limit(2)
+
+
+------------------------------------------------------
+// Do something with the data (using forEach)
+db.<collection_name>.find().forEach(callback)
+EX:
+db.posts.find().forEach(function(doc) {print('Post: ' + doc.title)})
+
+
+------------------------------------------------------
+// Show one the objects
+db.<collection_name>.findOne()
+EX:
+db.posts.findOne()
+
+
+------------------------------------------------------
+// Update the data, will rewrite everything
+db.<collection_name>.update(<filter>, <replacement>, <option(ex:upsert)>)
+EX:
+db.posts.update({title: 'Post One'},
+    {
+        title: 'Post one',
+        body: 'This is post one',
+        category: 'Technology',
+        date: Date()
+    },
+    {
+        upsert: true
+    }
+)
+---> upsert (update insert) if true, the we get nothing from the first parameter
+---> it will insert it (because nothing to update since the data is not available)
+
+
+------------------------------------------------------
+// Update the data, won't rewrite everything
+db.<collection_name>.update(<filter>, <replacement>, <option(ex:upsert)>)
+EX:
+db.posts.update({title: 'Post one'},
+    {
+        $set: {
+            category: 'News'
+        }
+    }
+)
+
+
+------------------------------------------------------
+// Update the data, increment
+db.<collection_name>.update(<filter>, <replacement>, <option(ex:upsert)>)
+EX:
+db.posts.update({title: 'Post one'},
+    {
+        $inc: {likes: 2}
+    }
+)
+---> increment by two
+
+
+------------------------------------------------------
+// Update the data, rename the property
+db.<collection_name>.update(<filter>, <replacement>, <option(ex:upsert)>)
+EX:
+db.posts.update({title: 'Post one'},
+    {
+        $rename: {likes: 'views'}
+    }
+)
+---> likes renamed by views
+
+
+------------------------------------------------------
+// Delete the data
+db.<collection_name>.remove(<filter_to_remove>)
+EX:
+db.posts.remove({title: 'Post four'})
+
+
+------------------------------------------------------
+// Embeded something
+EX:
+db.posts.update({title: 'Post one'},
+  {
+    $set: {
+      comments: [
+        {
+          user: 'Sherlock Holmes',
+          body: 'Comment One',
+          date: Date()
+        },
+        {
+          user: 'James Moriarty',
+          body: 'Comment Two',
+          date: Date()
+        },
+        {
+          user: 'Irene Adler',
+          body: 'Comment Three',
+          date: Date()
+        }
+      ]
+    }
+  }
+)
+
+
+------------------------------------------------------
+// Find the child with elemMatch
+EX:
+db.posts.find({
+  comments: {
+    $elemMatch: {
+      user: 'Sherlock Holmes'
+    }
+  }
+}).pretty()
+
+
+------------------------------------------------------
+// Create index
+EX:
+db.posts.createIndex({title: 'text'})
+
+
+------------------------------------------------------
+// Search 
+EX:
+db.posts.find({
+    $text: {
+        $search: "\"Post t\""
+    }
+})
+
+
+// Greater than or less than
+EX:
+db.posts.find({views: {$gt: 3}})
+---> gt: greater than
+---> gte: greater than or equal
+---> lt: less than
+---> lte: less than or equal
