@@ -9,6 +9,8 @@
   "author": "Agus Richard Lubis",
   "license": "ISC",
   "dependencies": {
+    "@hapi/joi": "^17.1.0",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "mongoose": "^5.9.2"
   }
