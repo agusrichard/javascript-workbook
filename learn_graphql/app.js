@@ -3,10 +3,14 @@ const { graphqlHTTP } = require('express-graphql')
 const schema = require('./schema/schema')
 const mongoose = require('mongoose')
 
+
+require('dotenv').config()
+
 const app = express()
 
-mongoose.connect('')
-mongoose.connections.once('open', () => {
+const uri = `mongodb+srv://agusrichard:${process.env.USERNAME}@learn-graphql.vr2l8.mongodb.net/${process.env.PASSWORD}?retryWrites=true&w=majority`
+mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connection.once('open', () => {
   console.log('Connected to database')
 })
 
