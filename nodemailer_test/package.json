@@ -9,6 +9,6 @@
   "author": "Agus Richard Lubis",
   "license": "ISC",
   "dependencies": {
-    "nodemailer": "^6.4.4"
+    "nodemailer": "^6.4.16"
   }
 }
