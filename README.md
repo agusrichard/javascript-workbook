@@ -1,3 +1,5 @@
-# learn-nodejs
+# JavaScript Workbook
 
-Learning Node.js
+Contains:
+- [x] Learning notes
+- [x] Experimentation
