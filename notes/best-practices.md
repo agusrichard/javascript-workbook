@@ -221,6 +221,122 @@ Avoid creating a lot of JavaScript dependent code.
 
 Everything that is likely to change in your code should not be scattered throughout your code.
 
+## [Javascript BEST PRACTICES PART 2](https://www.thinkful.com/learn/javascript-best-practices-2/)
+
+### Avoid Heavy Nesting
+
+Now, do a comparative check between these two:
+
+```javascript
+// One
+function renderProfiles(o){
+   var out = document.getElementById('profiles');
+   for(var i=0;i<o.members.length;i++){
+      var ul = document.createElement('ul');
+      var li = document.createElement('li');
+      li.appendChild(document.createTextNode(o.members[i].name));
+      var nestedul = document.createElement('ul');
+      for(var j=0;j<o.members[i].data.length;j++){
+         var datali = document.createElement('li');
+         datali.appendChild(
+            document.createTextNode(
+               o.members[i].data[j].label + ' ' +
+               o.members[i].data[j].value
+            )
+         );
+         nestedul.appendChild(detali);
+      }
+      li.appendChild(nestedul);
+   }
+   out.appendChild(ul);
+}
+
+// Two
+function renderProfiles(o){
+   var out = document.getElementById('profiles');
+   for(var i=0;i<o.members.length;i++){
+      var ul = document.createElement('ul');
+      var li = document.createElement('li');
+      li.appendChild(document.createTextNode(data.members[i].name));
+      li.appendChild(addMemberData(o.members[i]));
+   }
+   out.appendChild(ul);
+}
+function addMemberData(member){
+   var ul = document.createElement('ul');
+   for(var i=0;i<member.data.length;i++){
+      var li = document.createElement('li');
+      li.appendChild(
+         document.createTextNode(
+            member.data[i].label + ' ' +
+            member.data[i].value
+         )
+      );
+   }
+   ul.appendChild(li);
+   return ul;
+}
+```
+
+Why the first one is better than the second one? Because after several level of nesting, we will lose control of our code and it gets harder for people to read our code. Because of that, it's better for us to refactor our code and prevent heavy nesting.
+
+
+### Optimize Loops
+
+Don’t make JavaScript read the length of an array at every iteration of a for loop. Store the length value in a different variable.
+
+```javascript
+// Not good
+var names = ['George',
+'Ringo',
+'Paul',
+'John'];
+for(var i=0;i<names.length;i++){
+   doSomethingWith(names[i]);
+}
+
+// Better
+var names = ['George',
+'Ringo',
+'Paul',
+'John'];
+for(var i=0,j=names.length;i<j;i++){
+   doSomethingWith(names[i]);
+}
+```
+
+You can create the DOM nodes in the loop but avoid inserting them to the document. Because inserting a DOM would be an expensive operation.
+
+### Keep DOM Access to a Minimum
+
+If you can avoid it, don’t access the DOM.
+
+Reason: It’s slow and there are all kinds of browser issues with constant access to and changes in the DOM.
+
+Solution: Write or use a helper method that batch-converts a dataset to HTML.
+
+Seed the dataset with as much as you can and then call the method to render all out in one go.
+
+### Don’t Trust Any Data
+Good code does not trust any data that comes in.
+- Don’t believe the HTML document
+- Don’t trust that data reaches your function is of the right format.
+- Don’t expect elements in the DOM to be available.
+- Never ever use JavaScript to protect something.
+
+### Add Functionality with Javascript Not Content
+
+It is not convenient to create using the DOM, it’s flasky to use innerHTML (IE’s Operation Aborted error), and it’s hard to keep track of the quality of the HTML you produce.
+
+### Development Code is Not Live Code
+
+- Collate, minify and optimize your code in a build process.
+- Don’t optimize prematurely and punish your fellow developers and those who have to take over from them.
+- If we cut down on the time spent coding we have more time to perfect the conversion to machine code.
+
+## 50 Javascript Best Practice Rules to Write Better Code
+
 ## References:
 - https://www.w3schools.com/js/js_best_practices.asp
 - https://www.thinkful.com/learn/javascript-best-practices-1/
+- https://www.thinkful.com/learn/javascript-best-practices-2/Avoid-Heavy-Nesting#Build-on-the-Shoulders-of-Giants
