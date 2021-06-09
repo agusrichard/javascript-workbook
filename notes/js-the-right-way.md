@@ -1,16 +1,4 @@
-# Best Practices in JavaScript in General
-
-## [JavaScript Best Practices](https://www.w3schools.com/js/js_best_practices.asp)
-
-### 1. Avoid global variables
-Global variables and functions can be overwritten by other scripts. One of the best way by using closure.
-
-### 2. Always Declare Local Variables
-It's better for use to declare variables locally.
-
-### 3. Declarations on Top
-Put all declarations at the top of the script or function.
-
+# JavaScript The Right Way
 
 ## [Understanding Loose Typing in JavaScript](http://blog.jeremymartin.name/2008/03/understanding-loose-typing-in.html)
 
@@ -45,10 +33,11 @@ Variables in JavaScript are typed, but that type is determined internally
 
 For equality check, it's better for us to use '===' instead of '=='. Since with triple equal signs, we don't want to type coercion between two operands.
 
-## [The Right Way](https://jstherightway.org/#getting-started)
 
+## [JavaScript Scoping and Hoisting](http://www.adequatelygood.com/JavaScript-Scoping-and-Hoisting.html)
 
 
 ## References:
-- https://www.w3schools.com/js/js_best_practices.asp
 - https://jstherightway.org/#getting-started
+- http://blog.jeremymartin.name/2008/03/understanding-loose-typing-in.html
+- http://www.adequatelygood.com/JavaScript-Scoping-and-Hoisting.html
