@@ -103,3 +103,4 @@ We can use this command to get coverage report: `jest --coverage`
 
 ## References:
 - https://www.freecodecamp.org/news/how-to-start-unit-testing-javascript/
+- https://www.sitepoint.com/test-react-components-jest/
