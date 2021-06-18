@@ -101,6 +101,50 @@ We can use this command to get coverage report: `jest --coverage`
 - discover issues you may introduce with your newer commits,
 - and give you confidence that your code works.
 
+
+## [Jest Tutorial for Beginners: Getting Started With JavaScript Testing](https://www.valentinog.com/blog/jest/)
+
+### What is Jest?
+Jest Tutorial for Beginners: Getting Started With JavaScript Testing
+
+Describe is a jest method for containing one or more related tests. We use this to write test suite.
+
+```javascript
+describe("Filter function", () => {
+  // test stuff
+});
+```
+
+`test` method is the actual test code block.
+
+```javascript
+describe("Filter function", () => {
+  test("it should filter by a search term (link)", () => {
+    // actual test
+  });
+});
+```
+
+The actual test code:
+```javascript
+describe('Test filter term', () => {
+  test('it should filter by a search term (link)', () => {
+    const input = [
+      { id: 1, url: "https://www.url1.dev" },
+      { id: 2, url: "https://www.url2.dev" },
+      { id: 3, url: "https://www.link3.dev" }
+    ]
+
+    const output = [{ id: 3, url: "https://www.link3.dev" }]
+
+    expect(filterByTerm(input, "link")).toEqual(output)
+
+    expect(filterByTerm(input, "LINK")).toEqual(output)
+  })
+})
+```
+
+
 ## References:
 - https://www.freecodecamp.org/news/how-to-start-unit-testing-javascript/
-- https://www.sitepoint.com/test-react-components-jest/
+- https://www.valentinog.com/blog/jest/
