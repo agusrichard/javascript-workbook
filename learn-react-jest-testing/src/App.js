@@ -1,23 +1,18 @@
-import logo from './logo.svg';
 import './App.css';
+import Account from './Account'
 
 function App() {
+  const user = {
+    name: 'Sekardayu',
+    age: 23,
+    email: 'sekardayu@example.com'
+  }
+  
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Sekardayu Hana Pradiani</h1>
+      <h1>Saskia Nurul Azhima</h1>
+      <Account user={user} />
     </div>
   );
 }

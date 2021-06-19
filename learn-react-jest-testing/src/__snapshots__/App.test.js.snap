@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot test 1`] = `
+<div
+  className="App"
+>
+  <h1>
+    Sekardayu Hana Pradiani
+  </h1>
+  <h1>
+    Saskia Nurul Azhima
+  </h1>
+  <Account
+    user={
+      Object {
+        "age": 23,
+        "email": "sekardayu@example.com",
+        "name": "Sekardayu",
+      }
+    }
+  />
+</div>
+`;
