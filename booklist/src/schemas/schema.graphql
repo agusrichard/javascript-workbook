@@ -1,0 +1,39 @@
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  password: String!
+  fullname: String!
+}
+
+type Book {
+  id: ID!
+  user: User!
+  haveRead: Boolean!
+  title: String!
+  start: String
+  end: String
+  comment: String
+}
+
+type AuthPayload {
+  user: User
+  token: String
+}
+
+type Query {
+  users: [User!]!
+}
+
+type Mutation {
+  register(
+    username: String!
+    email: String!
+    password: String!
+    fullname: String
+  ): User
+  login(
+    email: String!
+    password: String!
+  )
+}
