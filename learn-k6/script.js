@@ -1,17 +1,24 @@
-import http from 'k6/http';
-import { check, sleep } from 'k6';
+import http from 'k6/http'
+import { sleep } from 'k6'
 
 export let options = {
-  vus: 30,
-  stages: [
-    { duration: '30s', target: 20 },
-    { duration: '1m30s', target: 10 },
-    { duration: '20s', target: 0 },
-  ],
-};
+  duration: '5s',
+}
 
-export default function () {
-  let res = http.get('https://httpbin.org/');
-  check(res, { 'status was 200': (r) => r.status == 200 });
-  sleep(1);
+export default function(){
+  const url = 'http://192.168.100.17:8000/accounts/register/'
+  const payload = JSON.stringify({
+    'email': 'user1@example.com',
+    'password': 'user1'
+  })
+
+  const params = {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+  
+  const response = http.post(url, payload, params)
+  console.log(response.body)
+  sleep(1)
 }
