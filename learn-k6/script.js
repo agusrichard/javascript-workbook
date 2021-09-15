@@ -1,8 +1,17 @@
 import http from 'k6/http'
-import { sleep } from 'k6'
+import { sleep, check } from 'k6'
+import { Counter, Rate, Trend } from 'k6/metrics'
 
-export let options = {
+const myTrend = new Trend('response_duration')
+const myCounter = new Counter('response_counter')
+const errorRate = new Rate('error_rate')
+
+
+export const options = {
   duration: '5s',
+  thresholds: {
+    'error_rate': ['rate<0.1']
+  }
 }
 
 export default function(){
@@ -19,6 +28,20 @@ export default function(){
   }
   
   const response = http.post(url, payload, params)
-  console.log(response.body)
+  const result = check(response, {
+    'is status 200': r => {
+      return r.status === 200
+    },
+    'is include correct body': r => {
+      return r.body.includes('Hello')
+    },
+    'is exceed 5': r => {
+      return r.timings.duration > 5
+    }
+  })
+  console.log('response.timings.duration', response.timings.duration)
+  myTrend.add(response.timings.duration)
+  myCounter.add(1)
+  errorRate.add(!result)
   sleep(1)
 }

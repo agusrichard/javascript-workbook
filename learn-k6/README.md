@@ -5,6 +5,9 @@
 ## List of Contents:
 ### 1. [K6 Getting Started](#content-1)
 ### 2. [Using k6 - HTTP Requests](#content-2)
+### 3. [Using k6 - Metrics](#content-3)
+### 4. [Using k6 - Checks](#content-4)
+### 5. [Using k6 - Thresholds](#content-5)
 
 
 </br>
@@ -251,6 +254,477 @@
 - Note how the name is the same for the two data samples related to two different URLs. Filtering the results on tag name: PostsItemURL will give you a result set including all the data points from all the 100 different URLs.
 
 
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
+
+## [Using k6 - Metrics](https://k6.io/docs/using-k6/metrics/) <span id="content-3"><span>
+
+
+### Built-in metrics
+- The following built-in metrics will always be collected by k6:
+  ![Built in metrics](./images/image3.png)
+
+
+### HTTP-specific built-in metrics
+- built-in metrics will only be generated when/if HTTP requests are made:
+  ![Http](./images/image4.png)
+- Accessing HTTP timings from a script:
+  ```javascript
+  import http from 'k6/http';
+  export default function () {
+    var res = http.get('http://httpbin.org');
+    console.log('Response time was ' + String(res.timings.duration) + ' ms');
+  }
+  ```
+- Response object:
+  ![response object](./images/image5.png)
+
+
+### Custom metrics
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { Trend } from 'k6/metrics';
+
+  let myTrend = new Trend('waiting_time');
+
+  export default function () {
+    let r = http.get('https://httpbin.org');
+    myTrend.add(r.timings.waiting);
+    console.log(myTrend.name);  // waiting_time
+  }
+  ```
+
+### Metric types
+- All metrics (both the built-in ones and the custom ones) have a type. The four different metric types in k6 are:
+  ![Metrics types](./images/image6.png)
+- Counter (cumulative metric)
+  ```javascript
+  import { Counter } from 'k6/metrics';
+
+  let myCounter = new Counter('my_counter');
+
+  export default function () {
+    myCounter.add(1);
+    myCounter.add(2);
+  }
+  ```
+
+### Gauge (keep the latest value only)
+- Example:
+  ```javascript
+  import { Gauge } from 'k6/metrics';
+
+  let myGauge = new Gauge('my_gauge');
+
+  export default function () {
+    myGauge.add(3);
+    myGauge.add(1);
+    myGauge.add(2);
+  }
+  ```
+- The value of my_gauge will be 2 at the end of the test. As with the Counter metric above, a Gauge with value zero (0) will NOT be printed to the stdout summary at the end of the test.
+
+### Trend (collect trend statistics (min/max/avg/percentiles) for a series of values)
+- Example:
+  ```javascript
+  import { Trend } from 'k6/metrics';
+
+  let myTrend = new Trend('my_trend');
+
+  export default function () {
+    myTrend.add(1);
+    myTrend.add(2);
+  }
+  ```
+- A trend metric is a container that holds a set of sample values, and which we can ask to output statistics (min, max, average, median or percentiles) about those samples. By default, k6 will print average, min, max, median, 90th percentile, and 95th percentile.
+
+
+### Rate (keeps track of the percentage of values in a series that are non-zero)
+- Example:
+  ```javascript
+  import { Rate } from 'k6/metrics';
+
+  let myRate = new Rate('my_rate');
+
+  export default function () {
+    myRate.add(true);
+    myRate.add(false);
+    myRate.add(1);
+    myRate.add(0);
+  }
+  ```
+- The value of my_rate at the end of the test will be 50%, indicating that half of the values added to the metric were non-zero.
+
+
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
+## [Using k6 - Checks](https://k6.io/docs/using-k6/checks/) <span id="content-4"><span>
+
+### What is a check?
+- Checks are like asserts but differ in that they don't halt the execution, instead, they just store the result of the check, pass or fail, and let the script execution continue.
+- Checks are great for codifying assertions relating to HTTP requests/responses, making sure the response code is 2xx for example:
+  ```javascript
+  import { check } from 'k6';
+  import http from 'k6/http';
+
+  export default function () {
+    let res = http.get('http://test.k6.io/');
+    check(res, {
+      'is status 200': (r) => r.status === 200,
+    });
+  }
+  ```
+- In the above example, one check was specified but you can add as many as you need in a call to check().
+- Multiple checks:
+  ```javascript
+  import { check } from 'k6';
+  import http from 'k6/http';
+
+  export default function () {
+    let res = http.get('http://test.k6.io/');
+    check(res, {
+      'is status 200': (r) => r.status === 200,
+      'body size is 1176 bytes': (r) => r.body.length == 1176,
+    });
+  }
+  ```
+
+### Using checks in a CI setting
+- One important thing to understand regarding checks is that a failed check will not fail the whole load test.
+- Checks help to keep your code organized and easy to read, but when you're running a load test in a CI test suite you may want to check for error conditions that fail the whole load test. In this case you may want to combine checks with thresholds to get what you want:
+  ```javascript
+  import http from 'k6/http';
+  import { check } from 'k6';
+  import { Rate } from 'k6/metrics';
+
+  export let errorRate = new Rate('errors');
+  export let options = {
+    thresholds: {
+      errors: ['rate<0.1'], // <10% errors
+    },
+  };
+
+  export default function () {
+    const res = http.get('http://httpbin.org');
+    const result = check(res, {
+      'status is 200': (r) => r.status == 200,
+    });
+
+    errorRate.add(!result);
+  }
+  ```
+- The above script declares a custom Rate metric (called "errors") to hold information about the errors we have seen during the test, then it uses a threshold on that custom metric to fail the test when it encounters too many errors.
+
+
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
+
+## [Using k6 - Thresholds](https://k6.io/docs/using-k6/thresholds/) <span id="content-5"><span>
+
+### What are thresholds?
+- Thresholds are a pass/fail criteria used to specify the performance expectations of the system under test.
+- Thresholds analyze the performance metrics and determine the final test result (pass/fail). Thresholds are a essential for load-testing automation.
+- Here is a sample script that specifies two thresholds, one evaluating the rate of http errors (http_req_failed metric) and one using the 95 percentile of all the response durations (the http_req_duration metric)
+  ```javascript
+  import http from 'k6/http';
+
+  export let options = {
+    thresholds: {
+      http_req_failed: ['rate<0.01'],   // http errors should be less than 1% 
+      http_req_duration: ['p(95)<200'], // 95% of requests should be below 200ms
+    },
+  };
+
+  export default function () {
+    http.get('https://test-api.k6.io/public/crocodiles/1/');
+  }
+  ```
+- In other words, you specify the pass criteria when defining your threshold, and if that expression evaluates to false at the end of the test, the whole test will be considered a fail.
+- In the above case, the criteria for both thresholds were met. The whole load test is considered to be a pass, which means that k6 will exit with exit code zero.
+- If any of the thresholds had failed, the little green checkmark ✓ next to the threshold name (http_req_failed, http_req_duration) would have been a red cross ✗ instead, and k6 would have generated a non-zero exit code.
+
+### Copy-paste Threshold examples
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export let options = {
+    thresholds: {
+      // 90% of requests must finish within 400ms.
+      http_req_duration: ['p(90) < 400'],
+    },
+  };
+
+  export default function () {
+    http.get('https://test-api.k6.io/public/crocodiles/1/');
+    sleep(1);
+  }
+  ```
+- - Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export let options = {
+    thresholds: {
+      // During the whole test execution, the error rate must be lower than 1%.
+      // `http_req_failed` metric is available since v0.31.0
+      http_req_failed: ['rate<0.01'],
+    },
+  };
+
+  export default function () {
+    http.get('https://test-api.k6.io/public/crocodiles/1/');
+    sleep(1);
+  }
+  ```
+- Multiple threshold example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export let options = {
+    thresholds: {
+      // 90% of requests must finish within 400ms, 95% within 800, and 99.9% within 2s.
+      http_req_duration: ['p(90) < 400', 'p(95) < 800', 'p(99.9) < 2000'],
+    },
+  };
+
+  export default function () {
+    let res1 = http.get('https://test-api.k6.io/public/crocodiles/1/');
+    sleep(1);
+  }
+  ```
+- Threshold on group durations:
+  ```javascript
+  import http from 'k6/http';
+  import { group, sleep } from 'k6';
+
+  export let options = {
+    thresholds: {
+      'group_duration{group:::individualRequests}': ['avg < 200'],
+      'group_duration{group:::batchRequests}': ['avg < 200'],
+    },
+    vus: 1,
+    duration: '10s',
+  };
+
+  export default function () {
+    group('individualRequests', function () {
+      http.get('https://test-api.k6.io/public/crocodiles/1/');
+      http.get('https://test-api.k6.io/public/crocodiles/2/');
+      http.get('https://test-api.k6.io/public/crocodiles/3/');
+    });
+
+    group('batchRequests', function () {
+      http.batch([
+        ['GET', `https://test-api.k6.io/public/crocodiles/1/`],
+        ['GET', `https://test-api.k6.io/public/crocodiles/2/`],
+        ['GET', `https://test-api.k6.io/public/crocodiles/3/`],
+      ]);
+    });
+
+    sleep(1);
+  }
+  ```
+
+### Threshold Syntax
+- Format:
+  ```javascript
+  export let options = {
+    thresholds: {
+      metric_name1: [ 'threshold_expression', ... ], // short format
+      metric_name1: [ { threshold: 'threshold_expression', abortOnFail: boolean, delayAbortEval: string }, ], // full format
+    }
+  };
+  ```
+- The above declaration inside a k6 script means that there will be a threshold configured for the metric metric_name1. To determine if the threshold has failed or passed, the string 'threshold_expression' will be evaluated. The 'threshold_expression' must follow the following format: aggregation_method operator value
+- Examples:
+  - avg < 200 // average duration can't be larger than 200ms
+  - count >= 500 // count must be larger or equal to 500
+  - p(90) < 300 // 90% of samples must be below 300
+- Threshold expression:
+  ![Threshold expression](./images/image7.png)
+- sample script:
+  ```javascript
+  import http from 'k6/http';
+  import { Trend, Rate, Counter, Gauge } from 'k6/metrics';
+  import { sleep } from 'k6';
+
+  export let TrendRTT = new Trend('RTT');
+  export let RateContentOK = new Rate('Content OK');
+  export let GaugeContentSize = new Gauge('ContentSize');
+  export let CounterErrors = new Counter('Errors');
+  export let options = {
+    thresholds: {
+      RTT: ['p(99)<300', 'p(70)<250', 'avg<200', 'med<150', 'min<100'],
+      'Content OK': ['rate>0.95'],
+      ContentSize: ['value<4000'],
+      Errors: ['count<100'],
+    },
+  };
+
+  export default function () {
+    let res = http.get('https://test-api.k6.io/public/crocodiles/1/');
+    let contentOK = res.json('name') === 'Bert';
+
+    TrendRTT.add(res.timings.duration);
+    RateContentOK.add(contentOK);
+    GaugeContentSize.add(res.body.length);
+    CounterErrors.add(!contentOK);
+
+    sleep(1);
+  }
+  ```
+
+### Thresholds on tags
+- It's often useful to specify thresholds only on a single URL or a specific tag. In k6, tagged requests create sub-metrics that can be used in thresholds as shown below.
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+  import { Rate } from 'k6/metrics';
+
+  export let options = {
+    thresholds: {
+      'http_req_duration{type:API}': ['p(95)<500'], // threshold on API requests only
+      'http_req_duration{type:staticContent}': ['p(95)<200'], // threshold on static content only
+    },
+  };
+
+  export default function () {
+    let res1 = http.get('https://test-api.k6.io/public/crocodiles/1/', {
+      tags: { type: 'API' },
+    });
+    let res2 = http.get('https://test-api.k6.io/public/crocodiles/2/', {
+      tags: { type: 'API' },
+    });
+
+    let responses = http.batch([
+      [
+        'GET',
+        'https://test-api.k6.io/static/favicon.ico',
+        null,
+        { tags: { type: 'staticContent' } },
+      ],
+      [
+        'GET',
+        'https://test-api.k6.io/static/css/site.css',
+        null,
+        { tags: { type: 'staticContent' } },
+      ],
+    ]);
+
+    sleep(1);
+  }
+  ```
+
+### Aborting a test when a threshold is crossed
+- If you want to abort a test as soon as a threshold is crossed, before the test has completed, there's an extended threshold specification format that looks like this:
+- Example:
+  ```javascript
+  import http from 'k6/http';
+
+  export let options = {
+    vus: 30,
+    duration: '2m',
+    thresholds: {
+      http_req_duration: [{threshold: 'p(99) < 10', abortOnFail: true}]
+    },
+  };
+
+  export default function () {
+    http.get('https://test-api.k6.io/public/crocodiles/1/');
+  }
+  ```
+- Fields for threshold:
+  ![Threhold's fields](./images/image8.png)
+
+### Failing a load test using checks
+- Checks are nice for codifying assertions, but unlike thresholds, checks will not affect the exit status of k6.
+- If you only use checks to verify that things work as expected, you will not be able to fail the whole test run based on the results of those checks.
+- It can often be useful to combine checks and thresholds, to get the best of both:
+  ```javascript
+  import http from 'k6/http';
+  import { check, sleep } from 'k6';
+
+  export let options = {
+    vus: 50,
+    duration: '10s',
+    thresholds: {
+      // the rate of successful checks should be higher than 90%
+      checks: ['rate>0.9'],
+    },
+  };
+
+  export default function () {
+    const res = http.get('http://httpbin.org');
+
+    check(res, {
+      'status is 500': (r) => r.status == 500,
+    });
+
+    sleep(1);
+  }
+  ```
+- Full example:
+  ```javascript
+  import http from 'k6/http';
+  import { check, sleep } from 'k6';
+
+  export let options = {
+    vus: 50,
+    duration: '10s',
+    thresholds: {
+      'checks{myTag:hola}': ['rate>0.9'],
+    },
+  };
+
+  export default function () {
+    let res;
+
+    res = http.get('http://httpbin.org');
+    check(res, {
+      'status is 500': (r) => r.status == 500,
+    });
+
+    res = http.get('http://httpbin.org');
+    check(
+      res,
+      {
+        'status is 200': (r) => r.status == 200,
+      },
+      { myTag: 'hola' },
+    );
+
+    sleep(1);
+  }
+  ```
+
+
+
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
 ## References:
 - https://k6.io/docs/getting-started/
 - https://k6.io/docs/using-k6/http-requests/
+- https://k6.io/docs/using-k6/metrics/
+- https://k6.io/docs/using-k6/checks/
+- https://k6.io/docs/using-k6/thresholds/
