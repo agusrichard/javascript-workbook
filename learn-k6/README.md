@@ -8,6 +8,10 @@
 ### 3. [Using k6 - Metrics](#content-3)
 ### 4. [Using k6 - Checks](#content-4)
 ### 5. [Using k6 - Thresholds](#content-5)
+### 6. [Using k6 - Options](#content-6)
+### 7. [Using k6 - Test life cycle](#content-7)
+### 8. [Using k6 - Modules](#content-8)
+
 
 
 </br>
@@ -716,15 +720,324 @@
   ```
 
 
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
+## [Using k6 - Options](https://k6.io/docs/using-k6/options/) <span id="content-6"><span>
+
+### List of options:
+- There are a lot of options. You can refer to the main documentation
+
+### Using Options
+- Options can be a part of the script code so that they can be version controlled. They can also be specified with command-line flags, environment variables or via a config file. The order of precedence is as follows:
+- Options from each level will overwrite the options from the next level, with the command-line flags having the highest precedence.
+- Example:
+  ```javascript
+  import http from 'k6/http';
+
+  export let options = {
+    hosts: { 'test.k6.io': '1.2.3.4' },
+    stages: [
+      { duration: '1m', target: 10 },
+      { duration: '1m', target: 20 },
+      { duration: '1m', target: 0 },
+    ],
+    thresholds: { http_req_duration: ['avg<100', 'p(95)<200'] },
+    noConnectionReuse: true,
+    userAgent: 'MyK6UserAgentString/1.0',
+  };
+
+  export default function () {
+    http.get('http://test.k6.io/');
+  }
+  ```
+
+You can access the rest on the documentation.
+
+
+## [Using k6 - Test life cycle](https://k6.io/docs/using-k6/test-life-cycle/) <span id="content-7"><span>
+
+### Intro
+- The four distinct life cycle stages in a k6 test are "init", "setup", "VU" and "teardown" Throughout the documentation, you will also see us referring to it as "init code", "VU code" etc.
+- Example:
+  ```javascript
+  // 1. init code
+
+  export function setup() {
+    // 2. setup code
+  }
+
+  export default function (data) {
+    // 3. VU code
+  }
+
+  export function teardown(data) {
+    // 4. teardown code
+  }
+  ```
+
+### Init and VU stages
+- Scripts must contain, at the very least, a default function - this defines the entry point for your VUs, similar to the main() function in many other languages:
+  ```javascript
+  export default function () {
+    // do things here...
+  }
+  ```
+- Code inside default is called "VU code", and is run over and over for as long as the test is running. Code outside of it is called "init code", and is run only once per VU.
+- VU code can make HTTP requests, emit metrics, and generally do everything you'd expect a load test to do - with a few important exceptions: you can't load anything from your local filesystem, or import any other modules. This all has to be done from the init code.
+- As an added bonus, you can use this to reuse data between iterations (but only for the same VU):
+  ```javascript
+  var counter = 0;
+
+  export default function () {
+    counter++;
+  }
+  ```
+
+### The default function life-cycle
+- A VU will execute the default function from start to end in sequence. Nothing out of the ordinary so far, but here's the important part; once the VU reaches the end of the default function it will loop back to the start and execute the code all over.
+- As part of this "restart" process, the VU is reset. Cookies are cleared and TCP connections might be torn down, depending on your test configuration options.
+- Make sure to use sleep() statements to pace your VUs properly. An appropriate amount of sleep/think time at the end of the default function is often needed to properly simulate a user reading content on a page. If you don't have a sleep() statement at the end of the default function your VU might be more "aggressive" than you've planned.
+
+### Setup and teardown stages
+- Beyond the required init and VU stages, which is code run for each VU, k6 also supports test-wide setup and teardown stages, like many other testing frameworks and tools.
+- The setup and teardown functions, like the default function, needs to be exported functions
+- But unlike the default function setup and teardown are only called once for a test. setup is called at the beginning of the test, after the init stage but before the VU stage (default function), and teardown is called at the end of a test, after the VU stage (default function).
+- You might have noticed the function signature of the default function and teardown function takes an argument, which we here refer to as data.
+- This data will be whatever is returned in the setup function, so a mechanism for passing data from the setup stage to the subsequent VU and teardown stages.
+- To support all of those modes, only data (i.e. JSON) can be passed between setup() and the other stages, any passed functions will be stripped.
+- Example:
+  ```javascript
+  export function setup() {
+    return { v: 1 };
+  }
+
+  export default function (data) {
+    console.log(JSON.stringify(data));
+  }
+
+  export function teardown(data) {
+    if (data.v != 1) {
+      throw new Error('incorrect data: ' + JSON.stringify(data));
+    }
+  }
+  ```
+- A big difference between the init stage and setup/teardown stages is that you have the full k6 API available in the latter, you can for example make HTTP requests in the setup and teardown stages:
+  ```javascript
+  export function setup() {
+    let res = http.get('https://httpbin.org/get');
+    return { data: res.json() };
+  }
+
+  export function teardown(data) {
+    console.log(JSON.stringify(data));
+  }
+
+  export default function (data) {
+    console.log(JSON.stringify(data));
+  }
+  ```
+- Note that any requests made in the setup and teardown stages will be counted in the end-of-test summary. Those requests will be tagged appropriately with the ::setup and ::teardown values for the group metric tag, so that you can filter them in JSON output or InfluxDB.
+
 
 **[⬆ back to top](#list-of-contents)**
 
 </br>
 
 ---
+
+## [Using k6 - Modules](https://k6.io/docs/using-k6/modules/) <span id="content-8"><span>
+
+### Importing modules
+- In k6, it is possible to import three different kinds of modules:
+  - Built-in modules
+  - Local filesystem modules
+  - Remote HTTP(S) modules
+- Built-in modules:
+  ```javascript
+  import http from 'k6/http';
+  ```
+- Local filesystem modules:
+  - These modules are stored on the local filesystem, and accessed either through relative or absolute filesystem paths
+  - Example:
+    ```javascript
+    //helpers.js
+    export function someHelper() {
+      ...
+    }
+    ```
+    ```javascript
+    //my-test.js
+    import { someHelper } from './helpers.js';
+
+    export default function () {
+      someHelper();
+    }
+    ```
+- Remote HTTP(S) modules
+  - The imported modules will be downloaded and executed at runtime, making it extremely important to make sure the code is legit and trusted before including it in a test script.
+  - Example:
+    ```javascript
+    import { randomItem } from 'https://jslib.k6.io/k6-utils/1.1.0/index.js';
+
+    export default function () {
+      randomItem();
+    }
+    ```
+
+### Bundling node modules
+- k6 is not NodeJS, nor is it a browser. Packages that rely on APIs provided by NodeJS, for instance the os and fs modules, will not work in k6. The same goes for browser-specific APIs like the window object.
+- In a javascript project running NodeJS, modules are imported using either import or require(), using the node module resolution algorithm. This means that the developer can import modules by name, without providing the full filesystem path to the module. For instance:
+  ```javascript
+  import { ClassInAModule } from 'cool-module';
+  ```
+- Due to its flexibility, ease of use, relatively low resource consumption, and known compatibility with k6, it is recommended to use webpack unless you have a specific reason to choose something else.
+- In general, all external modules added to a test project have a negative impact on performance, as they further increase the memory footprint and CPU usage.
+- Usually, this is not a big problem as each application only allocates these resources once. In k6, however, every VU has a separate javascript virtual machine, duplicating the resource usage once each.
+
+### Setting up the bundler
+- Initializing project
+  ```shell
+  mkdir ./example-project && \
+      cd "$_" && \
+      npm init -y
+  ```
+- Installing
+  ```shell
+  npm install --save-dev \
+      webpack \
+      webpack-cli \
+      k6 \
+      babel-loader \
+      @babel/core \
+      @babel/preset-env \
+      core-js
+  ```
+- Configuring webpack:
+  ```javascript
+  const path = require('path');
+
+  module.exports = {
+    mode: 'production',
+    entry: {
+      login: './src/login.test.js',
+      signup: './src/signup.test.js',
+    },
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      libraryTarget: 'commonjs',
+      filename: '[name].bundle.js',
+    },
+    module: {
+      rules: [{ test: /\.js$/, use: 'babel-loader' }],
+    },
+    target: 'web',
+    externals: /k6(\/.*)?/,
+  };
+  ```
+- Mode:
+  - Tells Webpack to automatically use the optimizations associated with the mode.
+- Entry
+  - The files Webpack will use as its entry points while performing the bundling. From these points, Webpack will automatically traverse all imports recursively until every possible dependency path has been exhausted. For instance:
+  - Example:
+    ```javascript
+    // login.test.js
+
+    import { SomeService } from './some.service.js';
+
+    const svc = new SomeService();
+    ```
+    ```javascript
+    // some.service.js
+
+    import * as lodash from 'lodash';
+
+    export class SomeService {
+      constructor() {
+        this._ = lodash;
+      }
+    }
+    ```
+  - would result in Webpack bundling login.test.js, some.service.js and all upstream dependencies utilized by lodash
+- Output
+  - The path key takes an absolute path which is where the finished bundle will be placed. 
+- Adding a bundle command inside package.json:
+  ```json
+  {
+    "name": "bundling-example",
+    "description": "",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+  +    "bundle": "webpack"
+    }
+    ...
+  }
+  ```
+- Running the bunling:
+  ```shell
+  npm run bundle
+  # ...
+  tree dist
+
+  dist
+  ├── login.bundle.js
+  └── signup.bundle.js
+
+  0 directories, 2 files
+  ```
+- Running the test:
+  ```shell
+  npm run bundle
+  # ...
+  k6 run dist/login.bundle.js
+  # ...
+  ```
+  ```shell
+  npm run bundle
+  # ...
+  k6 run dist/signup.bundle.js \
+      --vus 10 \
+      --duration 10s
+  # ...
+  ```
+  
+### Using local modules with Docker
+- When running k6 in a Docker container you must make sure to mount the necessary folders from the host into the container, using Docker volumes, so that k6 can see all the JS modules it needs to import.
+- For example, say you have the following structure on your host machine:
+  - `/home/k6/example/src/index.js`
+  - `/home/k6/example/src/modules/module.js`
+- Example:
+  ```javascript
+  import { hello_world } from './modules/module.js';
+
+  export default function () {
+    hello_world();
+  }
+  ```
+  ```javascript
+  export function hello_world() {
+    console.log('Hello world');
+  }
+  ```
+
+
+
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
 ## References:
 - https://k6.io/docs/getting-started/
 - https://k6.io/docs/using-k6/http-requests/
 - https://k6.io/docs/using-k6/metrics/
 - https://k6.io/docs/using-k6/checks/
 - https://k6.io/docs/using-k6/thresholds/
+- https://k6.io/docs/using-k6/options/
+- https://k6.io/docs/using-k6/test-life-cycle/
+- https://k6.io/docs/using-k6/modules/
