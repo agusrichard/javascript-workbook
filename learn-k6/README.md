@@ -11,7 +11,9 @@
 ### 6. [Using k6 - Options](#content-6)
 ### 7. [Using k6 - Test life cycle](#content-7)
 ### 8. [Using k6 - Modules](#content-8)
-
+### 9. [Using k6 - Tags and Groups](#content-9)
+### 10. [Using k6 - Environment variables](#content-10)
+### 11. [Using k6 - Execution context variables](#content-11)
 
 
 </br>
@@ -1024,6 +1026,227 @@ You can access the rest on the documentation.
   }
   ```
 
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
+## [Using k6 - Tags and Groups](https://k6.io/docs/using-k6/tags-and-groups/) <span id="content-9"><span>
+
+### Introduction
+- The analysis of your load results is a required step to find performance issues; a load test usually targets a service involving different subsystems and resources, making it hard to find the issue/s degrading your performance.
+- k6 provides two scripting APIs to help you during the analysis and easily visualize, sort and filter your test results.
+  - Groups: organize your load script around common logic.
+  - Tags: categorize your checks, thresholds, custom metrics and requests with tags for in-depth filtering.
+
+### Groups
+- Groups are optional, and it allows you to “group” a large load script to help you with the test result analysis. Groups can be nested, allowing you the BDD-style of testing.
+- This makes all metrics emitted in a group to have the tag group with a value of all group names wrapping it separated by '::' (two colons).
+- Example:
+  ```javascript
+  import { group } from 'k6';
+
+  export default function () {
+
+    group('visit product listing page', function () {
+      // ...
+    });
+    group('add several products to the shopping cart', function () {
+      // ...
+    });
+    group('visit login page', function () {
+      // ...
+    });
+    group('authenticate', function () {
+      // ...
+    });
+    group('checkout process', function () {
+      // ...
+    });
+
+  }
+  ```
+- Groups do the following tasks internally:
+  - For each group() function, k6 emits a group_duration metric that contains the total time to execute the group function.
+  - When a taggable resource: checks, requests, or custom metrics runs within a group, k6 will set the tag group with the current group name. Read more about it in Tags.
+- Both options, the group_duration metric and group tagging, could help you analyze and visualize better the results of more complex tests.
+- Wrapping each individual request within a group might add boilerplate code and be unnecessary.
+  ```javascript
+  // reconsider this type of code
+  group('get post', function () {
+    http.get(`http://example.com/posts/${id}`);
+  });
+  group('list posts', function () {
+    let res = http.get(`http://example.com/posts`);
+    check(res, {
+      'is status 200': (r) => r.status === 200,
+    });
+  });
+  ```
+- If your code looks like the example above, consider the following alternatives to write cleaner code:
+  - For dynamic URLs, use the URL grouping feature.
+  - To provide a meaningful name to your request, set the value of tags.name.
+  - To reuse common logic or organize your code better, group logic in functions or create a local Javascript module and import it into the test script.
+  - If you need to model advanced user patterns, check out Scenarios.
+
+
+### Tags
+- Tags are a simple and powerful way to categorize your k6 entities for later results filtering.
+- k6 provides two types of tags:
+  - User-defined tags: the ones you've added when writing your script.
+  - System tags: tags automatically assigned by k6.
+
+### User-defined tags: the ones you've added when writing your script.
+- User-defined tags allow you to categorize k6 entities based on your logic. The following entities can be tagged:
+  - checks
+  - thresholds
+  - custom metrics
+  - requests
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { Trend } from 'k6/metrics';
+  import { check } from 'k6';
+
+  let myTrend = new Trend('my_trend');
+
+  export default function () {
+    // Add tag to request metric data
+    let res = http.get('http://httpbin.org/', {
+      tags: {
+        my_tag: "I'm a tag",
+      },
+    });
+
+    // Add tag to check
+    check(
+      res,
+      { 'status is 200': (r) => r.status === 200 },
+      { my_tag: "I'm a tag" },
+    );
+
+    // Add tag to custom metric
+    myTrend.add(res.timings.connecting, { my_tag: "I'm a tag" });
+  }
+  ```
+
+### Test wide tags
+- Besides attaching tags on requests, checks and custom metrics you can set test wide tags that will be set across all metrics. You can either set the tags on the CLI using one or more --tag NAME=VALUE flags or in the script:
+- Example:
+  ```javascript
+  export let options = {
+    tags: {
+      name: 'value',
+    },
+  };
+  ```
+- Result:
+  ```json
+  {
+    "type ": "Point ",
+    "data ": {
+      "time ": "2017-05-09T14:34:45.239531499+02:00 ",
+      "value ": 459.865729,
+      "tags ": {
+        "group ": "::my group::json ",
+        "method ": "GET ",
+        "status ": "200 ",
+        "url ": "https://httpbin.org/get "
+      }
+    },
+    "metric ": "http_req_duration "
+  }
+  ```
+
+## [Using k6 - Environment variables](https://k6.io/docs/using-k6/environment-variables/) <span id="content-10"><span>
+
+### Intro
+- You can use environment variables for two main purposes:
+  - Passing environment variables to the k6 Script
+  - Configure k6 Options with environment variables
+
+### Passing environment variables to the k6 Script
+- In k6, the environment variables are exposed through a global __ENV variable, a JS object
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export default function () {
+    const res = http.get(`http://${__ENV.MY_HOSTNAME}/`);
+    sleep(1);
+  }
+  ```
+- The recommended option of passing environment variables to your testing script is using one or more -e / --env CLI flags (this command works the same for all platforms):
+  ```shell
+  k6 run -e MY_HOSTNAME=test.k6.io script.js
+  ```
+
+### Configure k6 options with environment variables
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export default function () {
+    const res = http.get('https://test.k6.io');
+    sleep(1);
+  }
+  ```
+- By default, running the above script locally will execute a single iteration using one virtual user(VU). We can modify the default behavior by passing along k6 options as environment variables.
+- For example, we can configure the script to run 10 virtual users for a duration of 10 seconds:
+  ```shell
+  K6_VUS=10 K6_DURATION=10s k6 run script.js
+  ```
+- As demonstrated above, you will need to prefix K6_ in the environment variable name in order for k6 to evaluate it as an option parameter.
+- However, be aware not all options are supported as environment variables. You can confirm by checking the documentation for each option.
+
+
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
+## [Using k6 - Execution context variables](https://k6.io/docs/using-k6/execution-context-variables/) <span id="content-11"><span>
+
+
+### _VU and __ITER
+- __VU and __ITER are both global variables with execution context information that k6 makes available to the test script.
+- __ITER: A numeric counter with the current iteration number for a specific VU. Zero-based.
+- __VU: Current VU number in use. The value is assigned incrementally for each new VU instance, starting from one. The variable will be 0 while executing the setup and teardown functions.
+
+
+### k6 Test Coordinator
+- k6 Virtual Users are concurrent, they will continuously execute through their script until the test is over or they hit their iteration limit (if you set one as described above).
+- When you ramp up more Virtual Users, k6 will start new ones at that time. When you ramp down, k6 will stop them after the completion of the iteration.
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export default function () {
+    http.get('http://test.k6.io');
+    console.log(`VU: ${__VU}  -  ITER: ${__ITER}`);
+    sleep(1);
+  }
+  ```
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export default function () {
+    const email = `user+${__VU}@mail.com`;
+    const payload = JSON.stringify({ email: email, password: 'test' });
+    const params = { headers: { 'Content-Type': 'application/json' } };
+    http.post('http://test.k6.io/login', payload, params);
+    console.log(email);
+    // .. continue the user flow
+
+    sleep(1);
+  }
+  ```
 
 
 **[⬆ back to top](#list-of-contents)**
@@ -1041,3 +1264,6 @@ You can access the rest on the documentation.
 - https://k6.io/docs/using-k6/options/
 - https://k6.io/docs/using-k6/test-life-cycle/
 - https://k6.io/docs/using-k6/modules/
+- https://k6.io/docs/using-k6/tags-and-groups/
+- https://k6.io/docs/using-k6/environment-variables/
+- https://k6.io/docs/using-k6/execution-context-variables/

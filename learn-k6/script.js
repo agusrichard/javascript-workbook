@@ -39,7 +39,7 @@ export default function(){
       return r.timings.duration > 5
     }
   })
-  console.log('response.timings.duration', response.timings.duration)
+
   myTrend.add(response.timings.duration)
   myCounter.add(1)
   errorRate.add(!result)
