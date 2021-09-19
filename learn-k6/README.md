@@ -14,6 +14,7 @@
 ### 9. [Using k6 - Tags and Groups](#content-9)
 ### 10. [Using k6 - Environment variables](#content-10)
 ### 11. [Using k6 - Execution context variables](#content-11)
+### 12. [Test Types - Introduction](#content-12)
 
 
 </br>
@@ -1255,6 +1256,329 @@ You can access the rest on the documentation.
 
 ---
 
+## [Test Types](https://k6.io/docs/test-types/introduction/) <span id="content-12"><span>
+
+### Introduction
+- Load testing classification:
+  ![Load testing](https://k6.io/docs/static/e45e3f092ab0445aa3da987a69ddad85/47a22/test-types.webp)
+
+### Explanation:
+- Smoke Test's role is to verify that your System can handle minimal load, without any problems.
+- Load Test is primarily concerned with assessing the performance of your system in terms of concurrent users or requests per second.
+- Stress Test and Spike testing are concerned with assessing the limits of your system and stability under extreme conditions.
+- Soak Test tells you about reliability and performance of your system over the extended period of time.
+
+### Smoke testing
+- Smoke test is a regular load test, configured for minimal load. You want to run a smoke test as a sanity check every time you write a new script or modify an existing script.
+- You want to run a smoke test to
+  - Verify that your test script doesn't have errors.
+  - Verify that your system doesn't throw any errors when under minimal load.
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { check, group, sleep, fail } from 'k6';
+
+  export let options = {
+    vus: 1, // 1 user looping for 1 minute
+    duration: '1m',
+
+    thresholds: {
+      http_req_duration: ['p(99)<1500'], // 99% of requests must complete below 1.5s
+    },
+  };
+
+  const BASE_URL = 'https://test-api.k6.io';
+  const USERNAME = 'TestUser';
+  const PASSWORD = 'SuperCroc2020';
+
+  export default () => {
+    let loginRes = http.post(`${BASE_URL}/auth/token/login/`, {
+      username: USERNAME,
+      password: PASSWORD,
+    });
+
+    check(loginRes, {
+      'logged in successfully': (resp) => resp.json('access') !== '',
+    });
+
+    let authHeaders = {
+      headers: {
+        Authorization: `Bearer ${loginRes.json('access')}`,
+      },
+    };
+
+    let myObjects = http.get(`${BASE_URL}/my/crocodiles/`, authHeaders).json();
+    check(myObjects, { 'retrieved crocodiles': (obj) => obj.length > 0 });
+
+    sleep(1);
+  };
+  ```
+
+### Load testing
+- Load Testing is primarily concerned with assessing the current performance of your system in terms of concurrent users or requests per second.
+- What is Load Testing
+  - Load Testing is a type of Performance Testing used to determine a system's behavior under both normal and peak conditions.
+  - Load Testing is used to ensure that the application performs satisfactorily when many users access it at the same time.
+- You should run Load Test to:
+  - Assess the current performance of your system under typical and peak load.
+  - Make sure you are continuously meeting the performance standards as you make changes to your system (code and infrastructure).
+- Note, this test has one simple threshold. The response time for 99% requests must be below 1.5 seconds. Thresholds are a way of ensuring that your system is meeting the performance goals you set for it.
+  ```javascript
+  import http from 'k6/http';
+  import { check, group, sleep } from 'k6';
+
+  export let options = {
+    stages: [
+      { duration: '5m', target: 100 }, // simulate ramp-up of traffic from 1 to 100 users over 5 minutes.
+      { duration: '10m', target: 100 }, // stay at 100 users for 10 minutes
+      { duration: '5m', target: 0 }, // ramp-down to 0 users
+    ],
+    thresholds: {
+      http_req_duration: ['p(99)<1500'], // 99% of requests must complete below 1.5s
+      'logged in successfully': ['p(99)<1500'], // 99% of requests must complete below 1.5s
+    },
+  };
+
+  const BASE_URL = 'https://test-api.k6.io';
+  const USERNAME = 'TestUser';
+  const PASSWORD = 'SuperCroc2020';
+
+  export default () => {
+    let loginRes = http.post(`${BASE_URL}/auth/token/login/`, {
+      username: USERNAME,
+      password: PASSWORD,
+    });
+
+    check(loginRes, {
+      'logged in successfully': (resp) => resp.json('access') !== '',
+    });
+
+    let authHeaders = {
+      headers: {
+        Authorization: `Bearer ${loginRes.json('access')}`,
+      },
+    };
+
+    let myObjects = http.get(`${BASE_URL}/my/crocodiles/`, authHeaders).json();
+    check(myObjects, { 'retrieved crocodiles': (obj) => obj.length > 0 });
+
+    sleep(1);
+  };
+  ```
+- Note that the number of users starts at 0, and slowly ramps up to the nominal value, where it stays for an extended period of time. The ramp down stage is optional.
+- We recommend you to always include a ramp-up stage in all your Load Tests because:
+  - it allows your system to warm up or auto scale to handle the traffic
+  - it allows your system to warm up or auto scale to handle the traffic
+  - If you run a load test using the SaaS cloud service, it allows the automated performance alerts to better understand the normal behaviour of your system.
+- Simulating a normal day:
+  ```javascript
+  export let options = {
+    stages: [
+      { duration: '5m', target: 60 }, // simulate ramp-up of traffic from 1 to 60 users over 5 minutes.
+      { duration: '10m', target: 60 }, // stay at 60 users for 10 minutes
+      { duration: '3m', target: 100 }, // ramp-up to 100 users over 3 minutes (peak hour starts)
+      { duration: '2m', target: 100 }, // stay at 100 users for short amount of time (peak hour)
+      { duration: '3m', target: 60 }, // ramp-down to 60 users over 3 minutes (peak hour ends)
+      { duration: '10m', target: 60 }, // continue at 60 for additional 10 minutes
+      { duration: '5m', target: 0 }, // ramp-down to 0 users
+    ],
+    thresholds: {
+      http_req_duration: ['p(99)<1500'], // 99% of requests must complete below 1.5s
+    },
+  };
+  ```
+- Note about performance thresholds. Typical expectations are:
+  - 99% of requests should finish within 5 seconds.
+  - 95% of requests should finish within 1 second.
+  - 99% users should be able to login successfully on the first try
+
+### Stress testing
+- While load testing is primarily concerned with assessing the systems performance, the purpose of stress testing is to assess the availability and stability of the system under heavy load.
+- What is stress testing?
+  - Stress Testing is a type of load testing used to determine the limits of the system. The purpose of this test is to verify the stability and reliability of the system under extreme conditions.
+- You typically want to stress test an API or website to:
+  - determine how your system will behave under extreme conditions.
+  - determine what is the maximum capacity of your system in terms of users or throughput.
+  - determine the breaking point of your system and its failure mode.
+  - determine if your system will recover without manual intervention after the stress test is over.
+- When stress testing, you're going to configure the test to include more concurrent users or generate higher throughput than:
+  - your application typically sees.
+  - you think it will be able to handle.
+- It's important to note that a stress test does not mean you're going to overwhelm the system immediately — that's a spike test, we're going to cover it in a minute.
+- A stress test should be configured in many gradual steps, each step increasing the concurrent load of the system.
+- A stress test can be only a couple of steps, or it can be many, as you see in the example below. No matter how many steps you include, just remember this type of test is about finding out what happens when pushing the performance limits of your system — so don’t worry about being too aggressive.
+- Remember, the point of this test is to gradually push your APIs beyond its breaking point. It's probably the easiest to start with an example.
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export let options = {
+    stages: [
+      { duration: '2m', target: 100 }, // below normal load
+      { duration: '5m', target: 100 },
+      { duration: '2m', target: 200 }, // normal load
+      { duration: '5m', target: 200 },
+      { duration: '2m', target: 300 }, // around the breaking point
+      { duration: '5m', target: 300 },
+      { duration: '2m', target: 400 }, // beyond the breaking point
+      { duration: '5m', target: 400 },
+      { duration: '10m', target: 0 }, // scale down. Recovery stage.
+    ],
+  };
+
+  export default function () {
+    const BASE_URL = 'https://test-api.k6.io'; // make sure this is not production
+
+    let responses = http.batch([
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/1/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/2/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/3/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/4/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+    ]);
+
+    sleep(1);
+  }
+  ```
+- This configuration increases the load by 100 users every 2 minutes and stays at this level for 5 minutes. We have also included a recovery stage at the end, where the system is gradually decreasing the load to 0.
+- If your infrastructure is configured to auto-scale, this test will help you to determine:
+  - How quickly the auto-scaling mechanisms react to increased load.
+  - Are there any failures during the scaling events.
+- The point of the recovery stage is to determine if the system can serve requests once the load decreases to a normal level. If you are testing auto-scaling, you may want to scale down in steps as well to determine if the down-scaling is working.
+
+### Spike testing
+- Spike test is a variation of a stress test, but it does not gradually increase the load, instead it spikes to extreme load over a very short window of time.
+- While a stress test allows the SUT (System Under Test) to gradually scale up its infrastructure, a spike test does not.
+- What is spike testing? Spike testing is a type of stress testing that immediately overwhelms the system with an extreme surge of load.
+- You want to execute a spike test to:
+  - Determine how your system will perform under a sudden surge of traffic.
+  - Determine if your system will recover once the traffic has subsided.
+- Success or failure of a spike test depends on your expectations. Systems generally react in 4 different ways:
+  - Excellent: system performance is not degraded during the surge of traffic. Response time is similar during low traffic and high traffic.
+  - Good: Response time is slower, but the system does not produce any errors. All requests are handled.
+  - Poor: System produces errors during the surge of traffic, but recovers to normal after the traffic subsides.
+  - Bad: System crashes, and does not recover after the traffic has subsided.
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export let options = {
+    stages: [
+      { duration: '10s', target: 100 }, // below normal load
+      { duration: '1m', target: 100 },
+      { duration: '10s', target: 1400 }, // spike to 1400 users
+      { duration: '3m', target: 1400 }, // stay at 1400 for 3 minutes
+      { duration: '10s', target: 100 }, // scale down. Recovery stage.
+      { duration: '3m', target: 100 },
+      { duration: '10s', target: 0 },
+    ],
+  };
+  export default function () {
+    const BASE_URL = 'https://test-api.k6.io'; // make sure this is not production
+
+    let responses = http.batch([
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/1/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/2/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/3/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+      [
+        'GET',
+        `${BASE_URL}/public/crocodiles/4/`,
+        null,
+        { tags: { name: 'PublicCrocs' } },
+      ],
+    ]);
+
+    sleep(1);
+  }
+  ```
+- Remember that the point of this test is to suddenly overwhelm the system. Don't be afraid to increase the number of VUs beyond your worst-case prediction. Depending on your needs, you may want to extend the recovery stage to 10+ minutes to see when the system finally recovers.
+  
+### Soak testing
+- While load testing is primarily concerned with performance assessment, and stress testing is concerned with system stability under extreme conditions, soak testing is concerned with reliability over a long time.
+- The soak test uncovers performance and reliability issues stemming from a system being under pressure for an extended period.
+- Reliability issues typically relate to bugs, memory leaks, insufficient storage quotas, incorrect configuration or infrastructure failures. 
+- Performance issues typically relate to incorrect database tuning, memory leaks, resource leaks or a large amount of data.
+- You typically run this test to:
+  - Verify that your system doesn't suffer from bugs or memory leaks, which result in a crash or restart after several hours of operation.
+  - Verify that expected application restarts don't lose requests.
+  - Find bugs related to race-conditions that appear sporadically.
+  - Make sure your database doesn't exhaust the allotted storage space and stops.
+  - Make sure your logs don't exhaust the allotted disk storage.
+  - Make sure the external services you depend on don't stop working after a certain amount of requests are executed.
+- We recommend you to configure your soak test at about 80% capacity of your system. 
+- If your system can handle a maximum of 500 simultaneous users, you should configure your soak test to 400 VUs.
+- The duration of a soak test should be measured in hours. We recommend you to start with a 1 hour test, and once successful extend it to several hours. Some errors are related to time, and not to the total number of requests executed.
+- Example:
+  ```javascript
+  import http from 'k6/http';
+  import { sleep } from 'k6';
+
+  export let options = {
+    stages: [
+      { duration: '2m', target: 400 }, // ramp up to 400 users
+      { duration: '3h56m', target: 400 }, // stay at 400 for ~4 hours
+      { duration: '2m', target: 0 }, // scale down. (optional)
+    ],
+  };
+
+  const API_BASE_URL = 'https://test-api.k6.io';
+
+  export default function () {
+    http.batch([
+      ['GET', `${API_BASE_URL}/public/crocodiles/1/`],
+      ['GET', `${API_BASE_URL}/public/crocodiles/2/`],
+      ['GET', `${API_BASE_URL}/public/crocodiles/3/`],
+      ['GET', `${API_BASE_URL}/public/crocodiles/4/`],
+    ]);
+
+    sleep(1);
+  }
+  ```
+
+
+
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
+
 ## References:
 - https://k6.io/docs/getting-started/
 - https://k6.io/docs/using-k6/http-requests/
@@ -1267,3 +1591,4 @@ You can access the rest on the documentation.
 - https://k6.io/docs/using-k6/tags-and-groups/
 - https://k6.io/docs/using-k6/environment-variables/
 - https://k6.io/docs/using-k6/execution-context-variables/
+- https://k6.io/docs/test-types/introduction/
