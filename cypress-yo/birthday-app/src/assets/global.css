@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600&display=swap');
+
+:root {
+  --dark-slate-blue: hsla(241, 41%, 39%, 1);
+  --glaucous: hsla(220, 37%, 57%, 1);
+  --cultured: hsla(0, 0%, 98%, 1);
+  --china-pink: hsla(333, 64%, 66%, 1);
+  --granny-smith-apple: hsla(101, 56%, 74%, 1);
+  --font: 'Inconsolata', monospace;
+}
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font);
+  color:hsla(241, 41%, 39%, 1);
+}
