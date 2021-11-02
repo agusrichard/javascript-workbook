@@ -4,6 +4,7 @@
 
 ## List of Contents:
 ### 1. [Advanced Javascript Design Patterns](#content-1)
+### 2. [Dependency Injection in JavaScript — the Best Tool You’re Not Using for your Tests](#content-2)
 
 
 
@@ -181,6 +182,79 @@
   ![](https://miro.medium.com/max/496/1*IWizizeeXuw2zPraRIlZXg.png)
 
 
+**[⬆ back to top](#list-of-contents)**
+
+<br />
+
+---
+
+## [Dependency Injection in JavaScript — the Best Tool You’re Not Using for your Tests](https://medium.com/dhiwise/advanced-javascript-design-patterns-6812f328658https://blog.bitsrc.io/dependency-injection-in-javascript-the-best-tool-youre-not-using-for-your-tests-4e83aca7579f5) <span id="content-2"><span>
+
+### What’s the problem exactly?
+- The definition of “unit” varies from literature to literature, but in essence it refers to the smallest testable portion of your logic.
+- It's hardly we write tests that write data to database or reading configuration file from disk. Well, you still can do this obviously!
+- Any I/O operation that you introduce into your test, whether you do it consciousl yor unconsciously is forcing your test to depend on the service you’re interacting with.
+- What happens if you’re running your tests and the disk fails? Your code won’t be able to read that file, but is your logic faulty? Because that’s what the failure of your unit test implies. But it’s not, the service is faulty.
+- It’s not your unit test’s responsibility to check the stability of an external service, that’s what integration tests are for.
+
+### The pattern
+- The pattern is simple, dependency injection is all about you being able to somehow overwrite the dependencies (also known as services) a piece of code (a.k.a the client) has.
+- So if you’re working with a function that writes to the database, you have to somehow overwrite the DB driver.
+- If you’re dealing with a function calling an external API, you’ll want to overwrite the library that does the HTTP request, and so on.
+  
+### Why do this though?
+- If you’re not using dependency injection in your unit tests, you’re doing it wrong.
+- You do not want to rely on external services that you potentially don’t have any control over, to understand if your logic is stable or not.
+- Without it, you don’t have full control over how these external services will respond, thus adding uncertainty to the behavior of your tests.
+- If these services suffer delays, they will directly affect the performance of your tests. This is not a problem if you have 10 tests, but if you’re working on a big system, that can affect 100’s if not 1000’s of tests. And running tests is usually one of the first steps of any CI/CD pipeline, so you’re also affecting the performance of your deployments.
+- Here you can’t control external services, thus you’re allowing for side effects in the form of false negatives.
+  
+### How to perform dependency injection in JavaScript?
+- Example:
+  ```javascript
+  import {query, connect} from './dbdriver'
+
+
+  function saveData(data, {q = query, con = connect} = {}) {
+      /** 
+      Call 'q' to execute the db query
+      Call 'con' to connect to the database
+      */
+      con()
+      const strQuery = "insert into mydatabase.mytable (data) value ('" + data +"')";
+      if(q(strQuery)) {
+          return true;
+      } else {
+          return {
+              error: true,
+              msg: "There was a problem saving your data"
+          }
+      }
+  }
+  }
+  ```
+- For the testing:
+  ```javascript
+  describe("My module", () => {
+
+      it ("should return true if the data is saved into the database", () => {
+
+          const result = await saveData('hi there!', {q: () => true, con: () => true})
+          result.should.be.true;
+      })
+  }
+  view raw
+  ```
+  ```javascript
+  it ("should return an error object if the data is not saved into the database", () => {
+
+        const result = await saveData('hi there!', {q: () => false, con: () => true})
+        result.should.equal({
+            error: true,
+            msg: "There was a problem saving your data"
+        })
+    })
+  ```
 
 **[⬆ back to top](#list-of-contents)**
 
@@ -190,3 +264,4 @@
 
 ## References:
 - https://medium.com/dhiwise/advanced-javascript-design-patterns-6812f3286585
+- https://blog.bitsrc.io/dependency-injection-in-javascript-the-best-tool-youre-not-using-for-your-tests-4e83aca7579f
