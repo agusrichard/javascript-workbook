@@ -1,0 +1,12 @@
+{
+  "name": "lbyl-eafp-article-material",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "exec": "node ./index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
