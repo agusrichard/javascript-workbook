@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: users
-          image: academind/kub-demo-users:latest
+          image: agusrichard/kube-demo-users:latest
           env:
             - name: AUTH_ADDRESS
               # value: "10.99.104.252"

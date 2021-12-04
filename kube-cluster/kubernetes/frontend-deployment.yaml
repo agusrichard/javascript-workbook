@@ -14,4 +14,4 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: academind/kub-demo-frontend:latest
+          image: agusrichard/kube-demo-react:latest
