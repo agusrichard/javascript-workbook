@@ -5,6 +5,7 @@
 ## List of Contents:
 ### 1. [JavaScript Clean Code — Quick Best Practices](#content-1)
 ### 2. [Writing Clean JavaScript — ES6 Edition](#content-2)
+### 3. [Worst JavaScript practices that degrade code quality](#content-3)
 
 
 </br>
@@ -775,13 +776,37 @@ class SuperArray extends Array {
   }
   ```
 
-
 **[⬆ back to top](#list-of-contents)**
 
 </br>
 
 ---
 
+## [Worst JavaScript practices that degrade code quality](https://tech.groww.in/worst-javascript-practices-that-degrade-code-quality-c21e068f0212) <span id="content-3"><span>
+
+### Still using var ?
+- When you declare a var keyword its scope is not limited to the block it is inside. It is accessible anywhere outside the block as well. It is a function scoped keyword.
+
+### Using un-descriptive names
+- It's clear what our variables mean. Hence, use descriptive variable names.
+
+### Using ‘==’ instead of ‘===’
+- And as a matter of fact, the less magic you have in your code, the better it is.
+
+### Lacking knowledge of DRY principle in Coding
+- Pretty self-explanatory, eh?
+
+### Not handling errors in API calls
+- Handling Errors makes your app, less prone to unwanted situations or pages.
+
+
+### Not understanding Arrow vs Normal functions
+- Arrow functions don’t have their own context.
+- Arrow functions are not valid constructors. Believe it or not, regular functions are “constructible”. Meaning they can be called with the new keyword and return a new instance of that function.
+- They don't allow Duplicate Argument Names. This is acceptable for regular functions in a non-strict mode. However, this can’t happen with arrow functions, regardless of how strict you want to be.
+
+
 ## References:
 - https://javascript.plainenglish.io/javascript-clean-code-best-practices-461c24c53cae
 - https://medium.com/geekculture/writing-clean-javascript-es6-edition-834e83abc746
+- https://tech.groww.in/worst-javascript-practices-that-degrade-code-quality-c21e068f0212
