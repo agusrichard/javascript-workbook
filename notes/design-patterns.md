@@ -6,7 +6,7 @@
 ### 1. [Advanced Javascript Design Patterns](#content-1)
 ### 2. [Dependency Injection in JavaScript — the Best Tool You’re Not Using for your Tests](#content-2)
 
-
+Awesome
 
 <br />
 
