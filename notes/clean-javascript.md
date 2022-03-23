@@ -3,10 +3,12 @@
 </br>
 
 ## List of Contents:
-### 1. [JavaScript Clean Code — Quick Best Practices](#content-1)
-### 2. [Writing Clean JavaScript — ES6 Edition](#content-2)
-### 3. [Worst JavaScript practices that degrade code quality](#content-3)
 
+### 1. [JavaScript Clean Code — Quick Best Practices](#content-1)
+
+### 2. [Writing Clean JavaScript — ES6 Edition](#content-2)
+
+### 3. [Worst JavaScript practices that degrade code quality](#content-3)
 
 </br>
 
@@ -18,14 +20,13 @@
 
 > A professional developer will write the code for the future self and for the “other guy” not just for the machine
 
-
 > Even bad code can function, but if the code isn’t clean, it can bring a development organization to its knees.
 
 ### Strong Type Checks
 
 - Use === instead of ==
 - By using strong type check we are forcing the type check. No type assertion.
-  
+
 ### Variables
 
 Name your variables in a way that they reveal the intention behind it
@@ -42,7 +43,7 @@ if (user.age > 30) {
   ok = true;
 }
 
-// Good 
+// Good
 const MAX_AGE = 30;
 
 let daysSinceLastVisit = 10;
@@ -55,22 +56,24 @@ const isUserOlderThanAllowed = user.age > MAX_AGE;
 ```
 
 - Don't add unneeded words
+
 ```javascript
 // Bad
-let nameValue
-let theProduct
+let nameValue;
+let theProduct;
 
 // Good
-let name
-let product
+let name;
+let product;
 ```
 
 - Don’t enforce the need for memorizing the variable context
+
 ```javascript
 // Bad
 const products = ["T-Shirt", "Shoes", "Watches", "Bags"];
 
-products.forEach(p => {
+products.forEach((p) => {
   doSomething();
   doSomethingElse();
   // ...
@@ -84,7 +87,7 @@ products.forEach(p => {
 // Good
 const products = ["T-Shirt", "Shoes", "Watches", "Bags"];
 
-products.forEach(product => {
+products.forEach((product) => {
   doSomething();
   doSomethingElse();
   // ...
@@ -93,7 +96,9 @@ products.forEach(product => {
   register(product);
 });
 ```
+
 - Don’t add unnecessary context
+
 ```javascript
 // Bad
 
@@ -121,8 +126,8 @@ const product = {
 product.name;
 ```
 
-
 ### Functions
+
 - Considering that it represents a certain behavior, a function name should be a verb or a phrase fully exposing the intent behind it as well as the intent of the arguments.
 
 ```javascript
@@ -130,7 +135,6 @@ product.name;
 function email(user) {
   // implementation
 }
-
 
 // Good
 function sendEmailUser(emailAddress) {
@@ -143,6 +147,7 @@ function sendEmailUser(emailAddress) {
 - Avoid executing multiple actions within a single function. </br>
   Refactor our code to make it do one thing only. Single Responsibility Principle.
 - Use 'Object.assign’ to set default objects
+
 ```javascript
 // Bad
 const shapeConfig = {
@@ -177,7 +182,7 @@ function createShape(config) {
   );
   ...
 }
-  
+
 createShape(shapeConfig);
 ```
 
@@ -205,8 +210,7 @@ function createPublicFile(name) {
 ```
 
 - Don’t pollute the Globals
-If you need to extend an existing object use ES Classes and inheritance instead of creating the function on the prototype chain of the native object.
-
+  If you need to extend an existing object use ES Classes and inheritance instead of creating the function on the prototype chain of the native object.
 
 ```javascript
 // Bad
@@ -223,15 +227,18 @@ class SuperArray extends Array {
 ```
 
 ### Conditionals
+
 - Use conditional shorthand
 - Avoid conditionals whenever possible
 
 ### ES Classes
+
 - Use method chaining
-  
+
 ### Avoid Using Eval
 
 ### Avoid In General
+
 - Keep our code dry
 - Remove dead code
 
@@ -244,12 +251,15 @@ class SuperArray extends Array {
 ## [Writing Clean JavaScript — ES6 Edition](https://medium.com/geekculture/writing-clean-javascript-es6-edition-834e83abc746) <span id="content-2"><span>
 
 ### Introduction
+
 - Clean code is not just code that works, but rather code that can be easily read, reused, and refactored by others.
 
 ### 1. Variables
+
 - Use meaningful names
 - The rule of thumb is that most JavaScript variables are in Camel Case (camelCase).
 - Example:
+
   ```javascript
   // Don't ❌
   const foo = "JDoe@example.com";
@@ -261,9 +271,11 @@ class SuperArray extends Array {
   const email = "John@example.com";
   const firstName = "John";
   const age = 23;
-  const isActive = true
+  const isActive = true;
   ```
+
 - Avoid adding unnecessary contexts
+
   ```javascript
   // Don't ❌
   const user = {
@@ -287,7 +299,9 @@ class SuperArray extends Array {
 
   user.id;
   ```
+
 - Avoid hardcoded values
+
   ```javascript
   // Don't ❌
   setTimeout(clearSessionData, 900000);
@@ -299,7 +313,9 @@ class SuperArray extends Array {
   ```
 
 ### 2. Functions
+
 - Function names usually have the form of action verbs, with the possible exception of functions that return booleans — which can have the form of a “Yes or No” question.
+
   ```javascript
   // Don't ❌
   function toggle() {
@@ -319,7 +335,9 @@ class SuperArray extends Array {
     // ...
   }
   ```
+
 - Use default arguments
+
   ```javascript
   // Don't ❌
   function printAllFilesInDirectory(dir) {
@@ -334,7 +352,9 @@ class SuperArray extends Array {
   ```
 
 ### Limit the number of arguments
+
 - As controversial as this rule might be, functions should have 0, 1, or 2 arguments.
+
   ```javascript
   // Don't ❌
   function sendPushNotification(title, message, image, isSilent, delayMs) {
@@ -358,8 +378,10 @@ class SuperArray extends Array {
 
   sendPushNotification(notificationConfig);
   ```
+
 - Avoid executing multiple actions in a function
-- A function should do one thing at a time. This rule helps reduce the function’s size and complexity, which results in easier testing, debugging, and refactoring. 
+- A function should do one thing at a time. This rule helps reduce the function’s size and complexity, which results in easier testing, debugging, and refactoring.
+
   ```javascript
   // Don't ❌
   function pingUsers(users) {
@@ -381,7 +403,9 @@ class SuperArray extends Array {
     return userRecord.isActive();
   }
   ```
+
 - Avoid using flags as arguments
+
   ```javascript
   // Don't ❌
   function createFile(name, isPublic) {
@@ -401,7 +425,9 @@ class SuperArray extends Array {
     createFile(`./public/${name}`);
   }
   ```
+
 - Do not repeat yourself (DRY)
+
   ```javascript
   // Don't ❌
   function renderCarsList(cars) {
@@ -448,9 +474,11 @@ class SuperArray extends Array {
     });
   }
   ```
+
 - Avoid side effects
 - In JavaScript, you should favor functional over imperative patterns. In other words, keep functions pure unless needed otherwise.
 - Side effects can modify shared states and resources, resulting in undesired behaviors.
+
   ```javascript
   // Don't ❌
   let date = "21-8-2021";
@@ -476,7 +504,9 @@ class SuperArray extends Array {
   console.log(date); // '21-8-2021';
   console.log(newDate); // ['21', '8', '2021'];
   ```
+
 - If you need to somewhat mutate a value, just returned the copied and mutated of that value:
+
   ```javascript
   // Don't ❌
   function enrollStudentInCourse(course, student) {
@@ -490,7 +520,9 @@ class SuperArray extends Array {
   ```
 
 ### 3. Conditionals
+
 - Use non-negative conditionals
+
   ```javascript
   // Don't ❌
   function isUserNotVerified(user) {
@@ -510,7 +542,9 @@ class SuperArray extends Array {
     // ...
   }
   ```
+
 - Use shorthands whenever possible
+
   ```javascript
   // Don't ❌
   if (isActive === true) {
@@ -535,7 +569,9 @@ class SuperArray extends Array {
   const isUserEligible = user.isVerified() && user.didSubscribe();
   view raw
   ```
+
 - Avoid branching and return soon
+
   ```javascript
   // Don't ❌
   function addUserService(db, user) {
@@ -563,7 +599,9 @@ class SuperArray extends Array {
     return db.insert("users", user);
   }
   ```
+
 - Favor object literals or maps over switch statements
+
   ```javascript
   // Don't ❌
   const getColorByStatus = (status) => {
@@ -590,7 +628,9 @@ class SuperArray extends Array {
 
   const getColorByStatus = (status) => statusColors[status] || "blue";
   ```
+
 - Use optional chaining and nullish coalescing
+
   ```javascript
   const user = {
     email: "JDoe@example.com",
@@ -626,9 +666,11 @@ class SuperArray extends Array {
   ```
 
 ### 4. Concurrency
+
 - Avoid callbacks
 - Callbacks are messy and result in nested code. ES6 offers Promises which allow for chaining callbacks and thus result in cleaner code.
 - Yet, ES6 also provides the “Async/Await” syntax as an arguably cleaner solution that imposes further linearity to code.
+
   ```javascript
   // Don't ❌
   getUser(function (err, user) {
@@ -667,7 +709,9 @@ class SuperArray extends Array {
   ```
 
 ### 5. Error Handling
+
 - Handle thrown errors and rejected promises
+
   ```javascript
   // Don't ❌
   try {
@@ -696,7 +740,9 @@ class SuperArray extends Array {
   ```
 
 ### 6. Comments
+
 - Only comment business logic
+
   ```javascript
   // Don't ❌
   function generateHash(str) {
@@ -740,15 +786,17 @@ class SuperArray extends Array {
     return hash;
   }
   ```
+
 - Make use of version control
 - There is absolutely no reason to keep commented code or journal comments, version control is already there to handle this.
+
   ```javascript
   // Don't ❌
   /**
-  * 2021-7-21: Fixed corner case
-  * 2021-7-15: Improved performance
-  * 2021-7-10: Handled mutliple user types
-  */
+   * 2021-7-21: Fixed corner case
+   * 2021-7-15: Improved performance
+   * 2021-7-10: Handled mutliple user types
+   */
   function generateCanonicalLink(user) {
     // const session = getUserSession(user)
     const session = user.getSession();
@@ -761,18 +809,19 @@ class SuperArray extends Array {
     // ...
   }
   ```
+
 - Document when possible
 - Documentation helps increase code quality and reliability. It serves as a user manual for your codebase in which anyone understands all the aspects of your code.
   ```javascript
-  /**  
-  * Returns x raised to the n-th power.  
-  *  
-  * @param {number} x The number to raise.  
-  * @param {number} n The power, should be a natural number.  
-  * @return {number} x raised to the n-th power.  
-  */ 
-  function pow(x, n) {   
-      // ...
+  /**
+   * Returns x raised to the n-th power.
+   *
+   * @param {number} x The number to raise.
+   * @param {number} n The power, should be a natural number.
+   * @return {number} x raised to the n-th power.
+   */
+  function pow(x, n) {
+    // ...
   }
   ```
 
@@ -785,28 +834,39 @@ class SuperArray extends Array {
 ## [Worst JavaScript practices that degrade code quality](https://tech.groww.in/worst-javascript-practices-that-degrade-code-quality-c21e068f0212) <span id="content-3"><span>
 
 ### Still using var ?
+
 - When you declare a var keyword its scope is not limited to the block it is inside. It is accessible anywhere outside the block as well. It is a function scoped keyword.
 
 ### Using un-descriptive names
+
 - It's clear what our variables mean. Hence, use descriptive variable names.
 
 ### Using ‘==’ instead of ‘===’
+
 - And as a matter of fact, the less magic you have in your code, the better it is.
 
 ### Lacking knowledge of DRY principle in Coding
+
 - Pretty self-explanatory, eh?
 
 ### Not handling errors in API calls
+
 - Handling Errors makes your app, less prone to unwanted situations or pages.
 
-
 ### Not understanding Arrow vs Normal functions
+
 - Arrow functions don’t have their own context.
 - Arrow functions are not valid constructors. Believe it or not, regular functions are “constructible”. Meaning they can be called with the new keyword and return a new instance of that function.
 - They don't allow Duplicate Argument Names. This is acceptable for regular functions in a non-strict mode. However, this can’t happen with arrow functions, regardless of how strict you want to be.
 
+**[⬆ back to top](#list-of-contents)**
+
+</br>
+
+---
 
 ## References:
+
 - https://javascript.plainenglish.io/javascript-clean-code-best-practices-461c24c53cae
 - https://medium.com/geekculture/writing-clean-javascript-es6-edition-834e83abc746
 - https://tech.groww.in/worst-javascript-practices-that-degrade-code-quality-c21e068f0212
