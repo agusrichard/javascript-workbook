@@ -2,7 +2,6 @@
 
 ## [How to Start Unit Testing Your JavaScript Code](https://www.freecodecamp.org/news/how-to-start-unit-testing-javascript/)
 
-
 ### Different Types of Testing
 
 #### Unit tests
@@ -22,7 +21,6 @@
 - The perspective is from user's point of view
 
 ![Pyramid of Test](https://www.freecodecamp.org/news/content/images/2020/03/presentation.jpg)
-
 
 ### Why Should I Bother Writing Unit Tests?
 
@@ -46,17 +44,17 @@ If we didn't use the mock, we'd be testing both this function and the store. Tha
 ```javascript
 // index.js
 function useless() {
-    return 21
+  return 21;
 }
 
-module.exports = { useless }
+module.exports = { useless };
 
 // index.test.js
-const { useless } = require('./index')
+const { useless } = require("./index");
 
-test('test useless function', () => {
-  expect(useless()).toBe(21)
-})
+test("test useless function", () => {
+  expect(useless()).toBe(21);
+});
 ```
 
 #### Mocking a Service
@@ -64,30 +62,30 @@ test('test useless function', () => {
 ```javascript
 // index.js
 function useless() {
-    console.log('doing some expensive operation here')
-    return 21
+  console.log("doing some expensive operation here");
+  return 21;
 }
 
 function amazingFunction(num, callback) {
-    return num + callback()
+  return num + callback();
 }
 
-module.exports = { useless, amazingFunction }
+module.exports = { useless, amazingFunction };
 
 // index.test.js
-const { useless, amazingFunction } = require('./index')
+const { useless, amazingFunction } = require("./index");
 
-test('test useless function', () => {
-  expect(useless()).toBe(21)
-})
+test("test useless function", () => {
+  expect(useless()).toBe(21);
+});
 
 const mockUseless = jest.fn(() => {
-  return 21
-})
+  return 21;
+});
 
-test('using mock', () => {
-  expect(amazingFunction(21, mockUseless)).toBe(42)
-})
+test("using mock", () => {
+  expect(amazingFunction(21, mockUseless)).toBe(42);
+});
 ```
 
 #### Coverage Report
@@ -101,10 +99,10 @@ We can use this command to get coverage report: `jest --coverage`
 - discover issues you may introduce with your newer commits,
 - and give you confidence that your code works.
 
-
 ## [Jest Tutorial for Beginners: Getting Started With JavaScript Testing](https://www.valentinog.com/blog/jest/)
 
 ### What is Jest?
+
 Jest Tutorial for Beginners: Getting Started With JavaScript Testing
 
 Describe is a jest method for containing one or more related tests. We use this to write test suite.
@@ -126,25 +124,120 @@ describe("Filter function", () => {
 ```
 
 The actual test code:
+
 ```javascript
-describe('Test filter term', () => {
-  test('it should filter by a search term (link)', () => {
+describe("Test filter term", () => {
+  test("it should filter by a search term (link)", () => {
     const input = [
       { id: 1, url: "https://www.url1.dev" },
       { id: 2, url: "https://www.url2.dev" },
-      { id: 3, url: "https://www.link3.dev" }
-    ]
+      { id: 3, url: "https://www.link3.dev" },
+    ];
 
-    const output = [{ id: 3, url: "https://www.link3.dev" }]
+    const output = [{ id: 3, url: "https://www.link3.dev" }];
 
-    expect(filterByTerm(input, "link")).toEqual(output)
+    expect(filterByTerm(input, "link")).toEqual(output);
 
-    expect(filterByTerm(input, "LINK")).toEqual(output)
-  })
-})
+    expect(filterByTerm(input, "LINK")).toEqual(output);
+  });
+});
 ```
 
+## [Understanding Jest Mocks](https://medium.com/@rickhanlonii/understanding-jest-mocks-f0046c68e53c)
+
+### The Mock Function
+
+- The goal for mocking is to replace something we don’t control with something we do
+- The Mock Function provides features to:
+  - Capture calls
+  - Set return values
+  - Change the implementation
+- Snippet:
+
+  ```javascript
+  test("plain mock function", () => {
+    const mock = jest.fn();
+
+    let result = mock("foo");
+    expect(result).toBeUndefined();
+    expect(mock).toHaveBeenCalled();
+    expect(mock).toHaveBeenCalledTimes(1);
+    expect(mock).toHaveBeenCalledWith("foo");
+  });
+  ```
+
+- Snippet:
+
+  ```javascript
+  test("mock implementation", () => {
+    const mock = jest.fn(() => "bar");
+
+    expect(mock("foo")).toBe("bar");
+    expect(mock).toHaveBeenCalledWith("foo");
+  });
+
+  test("also mock implementation", () => {
+    const mock = jest.fn().mockImplementation(() => "bar");
+
+    expect(mock("foo")).toBe("bar");
+    expect(mock).toHaveBeenCalledWith("foo");
+  });
+
+  test("mock implementation one time", () => {
+    const mock = jest.fn().mockImplementationOnce(() => "bar");
+
+    expect(mock("foo")).toBe("bar");
+    expect(mock).toHaveBeenCalledWith("foo");
+
+    expect(mock("baz")).toBe(undefined);
+    expect(mock).toHaveBeenCalledWith("baz");
+  });
+
+  test("mock return value", () => {
+    const mock = jest.fn();
+    mock.mockReturnValue("bar");
+
+    expect(mock("foo")).toBe("bar");
+    expect(mock).toHaveBeenCalledWith("foo");
+  });
+
+  test("mock promise resolution", () => {
+    const mock = jest.fn();
+    mock.mockResolvedValue("bar");
+
+    expect(mock("foo")).resolves.toBe("bar");
+    expect(mock).toHaveBeenCalledWith("foo");
+  });
+  ```
+
+### Dependency Injection
+
+- One of the common ways to use the Mock Function is by passing it directly as an argument to the function you are testing.
+- Snippet:
+
+  ```javascript
+  const doAdd = (a, b, callback) => {
+    callback(a + b);
+  };
+
+  test("calls callback with arguments added", () => {
+    const mockCallback = jest.fn();
+    doAdd(1, 2, mockCallback);
+    expect(mockCallback).toHaveBeenCalledWith(3);
+  });
+  ```
+
+### Mocking Modules and Functions
+
+- There are three main types of module and function mocking in Jest:
+  - jest.fn: Mock a function
+  - jest.mock: Mock a module
+  - jest.spyOn: Spy or mock a function
+
+### Mock a function with jest.fn
 
 ## References:
+
 - https://www.freecodecamp.org/news/how-to-start-unit-testing-javascript/
 - https://www.valentinog.com/blog/jest/
+- https://medium.com/@rickhanlonii/understanding-jest-mocks-f0046c68e53c

@@ -3,17 +3,26 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "jest --coverage"
+    "build": "babel src -d build",
+    "test": "babel src -d build && jest --verbose --coverage ./build"
   },
   "jest": {
     "collectCoverage": true,
-    "coverageReporters": ["html"]
+    "coverageReporters": [
+      "html"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "jest": "^27.0.4"
+  },
+  "dependencies": {
+    "@types/jest": "^27.4.1"
   }
 }
