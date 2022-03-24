@@ -28,7 +28,8 @@
 //   })
 // })
 
-import { doSomething } from './index'
+import * as app from './index'
+import * as math from './math'
 
 test('plain mock function', () => {
   const mock = jest.fn()
@@ -60,6 +61,14 @@ test('use callback function', () => {
   const x = 1
   const y = 1
   const mock = jest.fn(() => x + y)
-  expect(doSomething(x, y, mock)).toBe(x + y)
+  expect(app.doSomething(x, y, mock)).toBe(x + y)
   expect(mock).toHaveBeenCalled()
+})
+
+math.add = jest.fn()
+app.add = jest.fn()
+
+test('calls math.add', () => {
+  app.doAdd(1, 1)
+  expect(math.add).toHaveBeenCalled()
 })

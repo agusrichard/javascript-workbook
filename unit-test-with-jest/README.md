@@ -236,6 +236,127 @@ describe("Test filter term", () => {
 
 ### Mock a function with jest.fn
 
+- The most basic strategy for mocking is to reassign a function to the Mock Function. Then, anywhere the reassigned functions are used, the mock will be called instead of the original function:
+- Snippet:
+
+  ```javascript
+  import * as app from "./app";
+  import * as math from "./math";
+
+  math.add = jest.fn();
+  math.subtract = jest.fn();
+
+  test("calls math.add", () => {
+    app.doAdd(1, 2);
+    expect(math.add).toHaveBeenCalledWith(1, 2);
+  });
+
+  test("calls math.subtract", () => {
+    app.doSubtract(1, 2);
+    expect(math.subtract).toHaveBeenCalledWith(1, 2);
+  });
+  ```
+
+- This type of mocking is less common for a couple reasons:
+  - jest.mock does this automatically for all functions in a module
+  - jest.spyOn does the same thing but allows restoring the original function
+
+### Mock a module with jest.mock
+
+- A more common approach is to use jest.mock to automatically set all exports of a module to the Mock Function. So, calling jest.mock('./math.js'); essentially sets math.js to:
+  ```javascript
+  export const add = jest.fn();
+  export const subtract = jest.fn();
+  export const multiply = jest.fn();
+  export const divide = jest.fn();
+  ```
+- Snippet:
+
+  ```javascript
+  import * as app from "./app";
+  import * as math from "./math";
+
+  // Set all module functions to jest.fn
+  jest.mock("./math.js");
+
+  test("calls math.add", () => {
+    app.doAdd(1, 2);
+    expect(math.add).toHaveBeenCalledWith(1, 2);
+  });
+
+  test("calls math.subtract", () => {
+    app.doSubtract(1, 2);
+    expect(math.subtract).toHaveBeenCalledWith(1, 2);
+  });
+  ```
+
+### Spy or mock a function with jest.spyOn
+
+- Sometimes you only want to watch a method be called, but keep the original implementation. Other times you may want to mock the implementation, but restore the original later in the suite.
+- Here we simply “spy” calls to the math function, but leave the original implementation in place:
+
+  ```javascript
+  import * as app from "./app";
+  import * as math from "./math";
+
+  test("calls math.add", () => {
+    const addMock = jest.spyOn(math, "add");
+
+    // calls the original implementation
+    expect(app.doAdd(1, 2)).toEqual(3);
+
+    // and the spy stores the calls to add
+    expect(addMock).toHaveBeenCalledWith(1, 2);
+  });
+  ```
+
+- Snippet:
+
+  ```javascript
+  import * as app from "./app";
+  import * as math from "./math";
+
+  test("calls math.add", () => {
+    const addMock = jest.spyOn(math, "add");
+
+    // override the implementation
+    addMock.mockImplementation(() => "mock");
+    expect(app.doAdd(1, 2)).toEqual("mock");
+
+    // restore the original implementation
+    addMock.mockRestore();
+    expect(app.doAdd(1, 2)).toEqual(3);
+  });
+  ```
+
+- The key thing to remember about jest.spyOn is that it is just sugar for the basic jest.fn() usage. We can achieve the same goal by storing the original implementation, setting the mock implementation to to original, and re-assigning the original later:
+
+  ```javascript
+  import * as app from "./app";
+  import * as math from "./math";
+
+  test("calls math.add", () => {
+    // store the original implementation
+    const originalAdd = math.add;
+
+    // mock add with the original implementation
+    math.add = jest.fn(originalAdd);
+
+    // spy the calls to add
+    expect(app.doAdd(1, 2)).toEqual(3);
+    expect(math.add).toHaveBeenCalledWith(1, 2);
+
+    // override the implementation
+    math.add.mockImplementation(() => "mock");
+    expect(app.doAdd(1, 2)).toEqual("mock");
+    expect(math.add).toHaveBeenCalledWith(1, 2);
+
+    // restore the original implementation
+    math.add = originalAdd;
+    expect(app.doAdd(1, 2)).toEqual(3);
+  });
+  ```
+
 ## References:
 
 - https://www.freecodecamp.org/news/how-to-start-unit-testing-javascript/
