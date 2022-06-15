@@ -2,7 +2,7 @@ syntax = "proto3";
 
 service TodoService {
     rpc GetAll(Empty) returns (TodoList) {}
-    rpc Get(TodoId) returns (Todo) {}
+    rpc GetById(TodoId) returns (Todo) {}
     rpc Create(Todo) returns (Todo) {}
     rpc Update(Todo) returns (Todo) {}
     rpc Delete(TodoId) returns (Empty) {}

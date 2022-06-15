@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "server": "node server/server.js",
+    "client": "nodemon client/index.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,7 @@
     "express": "^4.18.1",
     "grpc": "^1.24.11",
     "hbs": "^4.2.0",
+    "nodemon": "^2.0.16",
     "uuid": "^8.3.2"
   }
 }
