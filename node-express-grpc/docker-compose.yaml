@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  server:
+    build: .
+    command: ["npm", "run", "server"]
+    ports:
+      - "6000:6000"
+    networks:
+      - grpc-network
+  client:
+    build: .
+    command: ["npm", "run", "client"]
+    ports:
+      - "5000:5000"
+    depends_on:
+      - server
+    networks:
+      - grpc-network
+networks:
+  grpc-network:

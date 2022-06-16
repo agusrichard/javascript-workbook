@@ -12,7 +12,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 
 const TodoService = grpc.loadPackageDefinition(packageDefinition).TodoService
 const client = new TodoService(
-    "localhost:30043",
+    "0.0.0.0:6000",
     grpc.credentials.createInsecure()
 )
 

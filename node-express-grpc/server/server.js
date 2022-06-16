@@ -81,6 +81,7 @@ server.addService(todosProto.TodoService.service, {
     }
 })
 
-server.bind("127.0.0.1:30043", grpc.ServerCredentials.createInsecure())
-console.log("Server running at http://127.0.0.1:30043")
+const SERVER_URL = "0.0.0.0:6000"
+server.bind(SERVER_URL, grpc.ServerCredentials.createInsecure())
+console.log(`Server running at ${SERVER_URL}`)
 server.start()
